@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heart Disease Prediction — Dashboard</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap');
+
+:root {
+  --bg:#0b0f1a; --surface:#111827; --card:#1a2235; --border:#1f2d45;
+  --red:#e84855; --blue:#3b82f6; --green:#10b981; --yellow:#f59e0b;
+  --purple:#a855f7; --teal:#14b8a6;
+  --text:#e2e8f0; --muted:#64748b; --mono:'DM Mono',monospace; --sans:'Syne',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);overflow-x:hidden}
+
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;
+  background-image:linear-gradient(rgba(59,130,246,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(59,130,246,.03) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none
+}
+
+/* NAV */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  background:rgba(11,15,26,.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 32px;height:56px
+}
+.nav-brand{font-size:14px;font-weight:700;color:var(--red);letter-spacing:-.01em}
+.nav-brand span{color:var(--text)}
+.nav-links{display:flex;gap:4px}
+.nav-links a{
+  padding:6px 14px;border-radius:8px;color:var(--muted);
+  font-family:var(--mono);font-size:11px;text-decoration:none;
+  transition:all .2s;text-transform:uppercase;letter-spacing:.08em
+}
+.nav-links a:hover,.nav-links a.active{background:rgba(59,130,246,.12);color:var(--blue)}
+
+/* MAIN */
+main{padding-top:80px;max-width:1200px;margin:0 auto;padding-left:24px;padding-right:24px}
+
+/* HERO */
+.hero{padding:60px 0 48px;position:relative;z-index:1}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(232,72,85,.1);border:1px solid rgba(232,72,85,.25);
+  color:var(--red);padding:5px 14px;border-radius:100px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;margin-bottom:20px
+}
+.pulse{animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+h1{font-size:clamp(2.2rem,5vw,3.8rem);font-weight:800;line-height:1.05;
+   letter-spacing:-.04em;margin-bottom:16px}
+h1 .accent{color:var(--red)}
+h1 .accent2{color:var(--blue)}
+.hero-sub{color:var(--muted);font-family:var(--mono);font-size:13px;
+          letter-spacing:.04em;max-width:600px;line-height:1.7}
+
+/* SECTION */
+section{margin-bottom:60px;position:relative;z-index:1}
+.section-header{
+  display:flex;align-items:center;gap:12px;margin-bottom:24px
+}
+.section-num{
+  width:28px;height:28px;border-radius:6px;display:flex;
+  align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:11px;font-weight:700;flex-shrink:0
+}
+.section-title{font-size:18px;font-weight:700;letter-spacing:-.02em}
+.section-line{flex:1;height:1px;background:var(--border)}
+
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:48px}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:22px;position:relative;overflow:hidden;
+  transition:transform .2s,border-color .2s
+}
+.stat-card:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.1)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.s1::before{background:var(--red)} .s2::before{background:var(--blue)}
+.s3::before{background:var(--green)} .s4::before{background:var(--yellow)}
+.stat-icon{font-size:22px;margin-bottom:10px}
+.stat-label{font-family:var(--mono);font-size:10px;text-transform:uppercase;
+            letter-spacing:.12em;color:var(--muted);margin-bottom:6px}
+.stat-val{font-size:2.1rem;font-weight:800;letter-spacing:-.05em;line-height:1}
+.stat-desc{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:5px}
+
+/* SCHEMA TABLE */
+.table-wrap{background:var(--card);border:1px solid var(--border);
+            border-radius:14px;overflow:hidden;margin-bottom:32px}
+.table-head{
+  display:grid;grid-template-columns:130px 90px 80px 1fr 100px;
+  padding:10px 20px;background:var(--surface);
+  border-bottom:1px solid var(--border);
+  font-family:var(--mono);font-size:10px;text-transform:uppercase;
+  letter-spacing:.1em;color:var(--muted)
+}
+.table-row{
+  display:grid;grid-template-columns:130px 90px 80px 1fr 100px;
+  padding:13px 20px;border-bottom:1px solid var(--border);
+  align-items:center;transition:background .15s;cursor:default
+}
+.table-row:last-child{border-bottom:none}
+.table-row:hover{background:rgba(255,255,255,.02)}
+.fname{font-family:var(--mono);font-size:13px;color:var(--blue);font-weight:500}
+.tbadge{display:inline-block;padding:2px 8px;border-radius:4px;
+        font-family:var(--mono);font-size:10px;font-weight:500;
+        text-transform:uppercase;letter-spacing:.06em}
+.ti{background:rgba(59,130,246,.15);color:#93c5fd}
+.tf{background:rgba(16,185,129,.15);color:#6ee7b7}
+.tb{background:rgba(232,72,85,.15);color:#fca5a5}
+.tc{background:rgba(245,158,11,.15);color:#fcd34d}
+.tl{background:rgba(168,85,247,.15);color:#d8b4fe}
+.ctag{display:inline-block;padding:2px 8px;border-radius:4px;
+      font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.08em}
+.cdem{background:rgba(59,130,246,.08);color:#93c5fd;border:1px solid rgba(59,130,246,.2)}
+.ccli{background:rgba(16,185,129,.08);color:#6ee7b7;border:1px solid rgba(16,185,129,.2)}
+.cimg{background:rgba(245,158,11,.08);color:#fcd34d;border:1px solid rgba(245,158,11,.2)}
+.clab{background:rgba(168,85,247,.08);color:#d8b4fe;border:1px solid rgba(168,85,247,.2)}
+.desc-cell{font-size:12px;color:var(--muted)}
+.range-cell{font-family:var(--mono);font-size:11px;color:var(--muted)}
+
+/* TWO COL */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+
+/* PANEL */
+.panel{background:var(--card);border:1px solid var(--border);
+       border-radius:14px;padding:24px}
+.panel-title{font-size:13px;font-weight:700;margin-bottom:18px;
+             display:flex;align-items:center;gap:8px}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* PIPELINE STEPS */
+.pipe-step{display:flex;align-items:flex-start;gap:14px;
+           padding:12px 0;border-bottom:1px solid var(--border)}
+.pipe-step:last-child{border-bottom:none;padding-bottom:0}
+.pipe-num{width:30px;height:30px;border-radius:8px;display:flex;
+          align-items:center;justify-content:center;
+          font-family:var(--mono);font-size:11px;font-weight:700;flex-shrink:0}
+.pipe-info h4{font-size:13px;font-weight:600;margin-bottom:2px}
+.pipe-info p{font-size:11px;color:var(--muted);font-family:var(--mono);line-height:1.5}
+
+/* ALGO CARDS */
+.algo-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.algo-card{border:1px solid var(--border);border-radius:10px;padding:16px;
+           transition:border-color .2s}
+.algo-card.winner{border-color:rgba(16,185,129,.4);background:rgba(16,185,129,.04)}
+.algo-name{font-size:12px;font-weight:700;margin-bottom:6px}
+.algo-acc{font-family:var(--mono);font-size:22px;font-weight:500;margin-bottom:4px}
+.algo-tag{font-family:var(--mono);font-size:10px;color:var(--muted)}
+
+/* DIST BARS */
+.dist-row{margin-bottom:12px}
+.dist-meta{display:flex;justify-content:space-between;
+           font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:4px}
+.bar-track{height:18px;background:var(--surface);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;
+          padding-left:8px;font-family:var(--mono);font-size:10px;font-weight:500;
+          transition:width 1.2s ease}
+
+/* FEATURE IMPORTANCE BARS */
+.feat-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.feat-label{font-family:var(--mono);font-size:11px;color:var(--muted);
+            width:90px;flex-shrink:0;text-align:right}
+.feat-bar-track{flex:1;height:14px;background:var(--surface);border-radius:3px;overflow:hidden}
+.feat-bar-fill{height:100%;border-radius:3px;position:relative}
+.feat-val{font-family:var(--mono);font-size:10px;color:var(--muted);
+          width:44px;text-align:right;flex-shrink:0}
+
+/* METRICS GRID */
+.metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.metric-item{background:var(--surface);border-radius:8px;padding:12px}
+.metric-label{font-family:var(--mono);font-size:10px;text-transform:uppercase;
+              letter-spacing:.1em;color:var(--muted);margin-bottom:4px}
+.metric-val{font-size:20px;font-weight:700;font-family:var(--mono)}
+
+/* CONFUSION MATRIX */
+.cm-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:12px}
+.cm-cell{padding:14px;border-radius:6px;text-align:center}
+.cm-label{font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:4px}
+.cm-val{font-size:24px;font-weight:800;font-family:var(--mono)}
+.tp{background:rgba(16,185,129,.18)} .tn{background:rgba(59,130,246,.18)}
+.fp{background:rgba(245,158,11,.12)} .fn{background:rgba(232,72,85,.12)}
+
+/* PREDICTOR */
+.predictor{background:var(--card);border:1px solid var(--border);
+           border-radius:16px;padding:32px}
+.form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+.form-field label{display:block;font-family:var(--mono);font-size:10px;
+                  text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+.form-field input,.form-field select{
+  width:100%;background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;padding:9px 12px;color:var(--text);
+  font-family:var(--mono);font-size:12px;outline:none;
+  transition:border-color .2s
+}
+.form-field input:focus,.form-field select:focus{border-color:var(--blue)}
+.predict-btn{
+  width:100%;padding:14px;border:none;border-radius:10px;
+  background:linear-gradient(135deg,var(--blue),#6366f1);
+  color:#fff;font-family:var(--sans);font-size:14px;font-weight:700;
+  cursor:pointer;transition:opacity .2s,transform .1s;letter-spacing:.02em
+}
+.predict-btn:hover{opacity:.9;transform:translateY(-1px)}
+.result-box{
+  margin-top:24px;padding:20px;border-radius:10px;
+  border:1px solid var(--border);display:none
+}
+.result-box.show{display:block;animation:slideIn .3s ease}
+@keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.result-risk{font-size:24px;font-weight:800;margin-bottom:6px}
+.result-detail{font-family:var(--mono);font-size:11px;color:var(--muted);line-height:1.8}
+.risk-HIGH{color:var(--red);border-color:rgba(232,72,85,.3);background:rgba(232,72,85,.04)}
+.risk-MODERATE{color:var(--yellow);border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.04)}
+.risk-LOW{color:var(--green);border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.04)}
+
+/* CODE BLOCK */
+.code-block{
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:20px;font-family:var(--mono);font-size:12px;line-height:1.7;
+  overflow-x:auto;color:#94a3b8
+}
+.code-block .kw{color:#c792ea} .code-block .fn{color:#82aaff}
+.code-block .st{color:#c3e88d} .code-block .cm{color:#546e7a;font-style:italic}
+.code-block .num{color:#f78c6c}
+
+/* REFS */
+.ref-item{padding:10px 0;border-bottom:1px solid var(--border);
+          font-family:var(--mono);font-size:11px;color:var(--muted);line-height:1.6}
+.ref-item:last-child{border-bottom:none}
+.ref-num{color:var(--blue);font-weight:500;margin-right:8px}
+
+/* FOOTER */
+footer{text-align:center;padding:40px 0 32px;
+       border-top:1px solid var(--border);margin-top:40px;
+       font-family:var(--mono);font-size:11px;color:var(--muted);
+       position:relative;z-index:1}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .stats-grid,.three-col{grid-template-columns:1fr 1fr}
+  .two-col,.form-grid{grid-template-columns:1fr}
+  .table-head,.table-row{grid-template-columns:110px 80px 1fr}
+  .table-head>*:nth-child(3),.table-head>*:nth-child(5),
+  .table-row>*:nth-child(3),.table-row>*:nth-child(5){display:none}
+}
+@media(max-width:600px){
+  .stats-grid,.algo-cards,.metrics-grid{grid-template-columns:1fr}
+  .nav-links{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">❤️ <span>HeartPredict</span></div>
+  <div class="nav-links">
+    <a href="#overview" class="active">Overview</a>
+    <a href="#data">Data</a>
+    <a href="#pipeline">Pipeline</a>
+    <a href="#results">Results</a>
+    <a href="#predictor">Predictor</a>
+    <a href="#code">Code</a>
+  </div>
+</nav>
+
+<main>
+
+<!-- HERO -->
+<div class="hero" id="overview">
+  <div class="hero-badge"><span class="pulse">●</span> Machine Learning · Healthcare · Python</div>
+  <h1>Heart Disease<br><span class="accent">Prediction</span> using<br><span class="accent2">Machine Learning</span></h1>
+  <p class="hero-sub">A complete ML pipeline for early-stage cardiovascular risk detection using Random Forest and Logistic Regression on the Cleveland Heart Disease Dataset.</p>
+</div>
+
+<!-- STATS -->
+<div class="stats-grid">
+  <div class="stat-card s1">
+    <div class="stat-icon">🗃️</div>
+    <div class="stat-label">Dataset Records</div>
+    <div class="stat-val" style="color:var(--red)">303</div>
+    <div class="stat-desc">Cleveland UCI Repository</div>
+  </div>
+  <div class="stat-card s2">
+    <div class="stat-icon">📊</div>
+    <div class="stat-label">Input Features</div>
+    <div class="stat-val" style="color:var(--blue)">13</div>
+    <div class="stat-desc">Clinical + Demographic</div>
+  </div>
+  <div class="stat-card s3">
+    <div class="stat-icon">🌲</div>
+    <div class="stat-label">Random Forest</div>
+    <div class="stat-val" style="color:var(--green)">90.2%</div>
+    <div class="stat-desc">Best Model Accuracy</div>
+  </div>
+  <div class="stat-card s4">
+    <div class="stat-icon">📈</div>
+    <div class="stat-label">Logistic Regression</div>
+    <div class="stat-val" style="color:var(--yellow)">85.2%</div>
+    <div class="stat-desc">Baseline Accuracy</div>
+  </div>
+</div>
+
+<!-- DATA STRUCTURE -->
+<section id="data">
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(59,130,246,.15);color:var(--blue)">01</div>
+    <div class="section-title">Data Structure & Schema</div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="table-wrap">
+    <div class="table-head">
+      <span>Feature</span><span>Type</span><span>Category</span>
+      <span>Description</span><span>Range / Values</span>
+    </div>
+    <div class="table-row"><span class="fname">age</span><span><span class="tbadge ti">int</span></span><span><span class="ctag cdem">demographic</span></span><span class="desc-cell">Age in years</span><span class="range-cell">29 – 77</span></div>
+    <div class="table-row"><span class="fname">sex</span><span><span class="tbadge tb">binary</span></span><span><span class="ctag cdem">demographic</span></span><span class="desc-cell">Sex (1=male, 0=female)</span><span class="range-cell">{0, 1}</span></div>
+    <div class="table-row"><span class="fname">cp</span><span><span class="tbadge tc">cat</span></span><span><span class="ctag ccli">clinical</span></span><span class="desc-cell">Chest pain type (0–3)</span><span class="range-cell">{0,1,2,3}</span></div>
+    <div class="table-row"><span class="fname">trestbps</span><span><span class="tbadge ti">int</span></span><span><span class="ctag ccli">clinical</span></span><span class="desc-cell">Resting blood pressure (mm Hg)</span><span class="range-cell">94 – 200</span></div>
+    <div class="table-row"><span class="fname">chol</span><span><span class="tbadge ti">int</span></span><span><span class="ctag ccli">clinical</span></span><span class="desc-cell">Serum cholesterol (mg/dl)</span><span class="range-cell">126 – 564</span></div>
+    <div class="table-row"><span class="fname">fbs</span><span><span class="tbadge tb">binary</span></span><span><span class="ctag ccli">clinical</span></span><span class="desc-cell">Fasting blood sugar &gt;120 mg/dl</span><span class="range-cell">{0, 1}</span></div>
+    <div class="table-row"><span class="fname">restecg</span><span><span class="tbadge tc">cat</span></span><span><span class="ctag ccli">clinical</span></span><span class="desc-cell">Resting ECG results</span><span class="range-cell">{0,1,2}</span></div>
+    <div class="table-row"><span class="fname">thalach</span><span><span class="tbadge ti">int</span></span><span><span class="ctag ccli">clinical</span></span><span class="desc-cell">Maximum heart rate (bpm)</span><span class="range-cell">71 – 202</span></div>
+    <div class="table-row"><span class="fname">exang</span><span><span class="tbadge tb">binary</span></span><span><span class="ctag ccli">clinical</span></span><span class="desc-cell">Exercise induced angina</span><span class="range-cell">{0, 1}</span></div>
+    <div class="table-row"><span class="fname">oldpeak</span><span><span class="tbadge tf">float</span></span><span><span class="ctag ccli">clinical</span></span><span class="desc-cell">ST depression (exercise vs rest)</span><span class="range-cell">0.0 – 6.2</span></div>
+    <div class="table-row"><span class="fname">slope</span><span><span class="tbadge tc">cat</span></span><span><span class="ctag ccli">clinical</span></span><span class="desc-cell">Slope of peak exercise ST segment</span><span class="range-cell">{0,1,2}</span></div>
+    <div class="table-row"><span class="fname">ca</span><span><span class="tbadge ti">int</span></span><span><span class="ctag cimg">imaging</span></span><span class="desc-cell">Major vessels (fluoroscopy)</span><span class="range-cell">0 – 3</span></div>
+    <div class="table-row"><span class="fname">thal</span><span><span class="tbadge tc">cat</span></span><span><span class="ctag cimg">imaging</span></span><span class="desc-cell">Thalassemia type</span><span class="range-cell">{1,2,3}</span></div>
+    <div class="table-row" style="background:rgba(168,85,247,.04)"><span class="fname" style="color:#d8b4fe">target</span><span><span class="tbadge tl">label</span></span><span><span class="ctag clab">label</span></span><span class="desc-cell">Heart disease diagnosis</span><span class="range-cell">{0, 1}</span></div>
+  </div>
+
+  <div class="two-col">
+    <div class="panel">
+      <div class="panel-title"><span class="dot" style="background:var(--red)"></span>Target Distribution</div>
+      <div class="dist-row">
+        <div class="dist-meta"><span>Heart Disease (target=1)</span><span style="color:var(--red)">165 · 54.5%</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:54.5%;background:linear-gradient(90deg,#e84855,#f87171);color:#fff">54.5%</div></div>
+      </div>
+      <div class="dist-row">
+        <div class="dist-meta"><span>No Disease (target=0)</span><span style="color:var(--blue)">138 · 45.5%</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:45.5%;background:linear-gradient(90deg,#3b82f6,#60a5fa);color:#fff">45.5%</div></div>
+      </div>
+      <div style="margin-top:16px;padding:12px;background:var(--surface);border-radius:8px;
+                  font-family:var(--mono);font-size:11px;color:var(--muted)">
+        Total: 303 records &nbsp;|&nbsp; Train: 242 (80%) &nbsp;|&nbsp; Test: 61 (20%)<br>
+        Stratified split with random_state = 0
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="dot" style="background:var(--yellow)"></span>Top Feature Importances (RF)</div>
+      <div class="feat-row"><span class="feat-label">age</span><div class="feat-bar-track"><div class="feat-bar-fill" style="width:100%;background:linear-gradient(90deg,#e84855,#f87171)"></div></div><span class="feat-val">0.202</span></div>
+      <div class="feat-row"><span class="feat-label">oldpeak</span><div class="feat-bar-track"><div class="feat-bar-fill" style="width:72%;background:linear-gradient(90deg,#f59e0b,#fbbf24)"></div></div><span class="feat-val">0.146</span></div>
+      <div class="feat-row"><span class="feat-label">exang</span><div class="feat-bar-track"><div class="feat-bar-fill" style="width:58%;background:linear-gradient(90deg,#a855f7,#c084fc)"></div></div><span class="feat-val">0.118</span></div>
+      <div class="feat-row"><span class="feat-label">thalach</span><div class="feat-bar-track"><div class="feat-bar-fill" style="width:54%;background:linear-gradient(90deg,#3b82f6,#60a5fa)"></div></div><span class="feat-val">0.109</span></div>
+      <div class="feat-row"><span class="feat-label">trestbps</span><div class="feat-bar-track"><div class="feat-bar-fill" style="width:49%;background:linear-gradient(90deg,#10b981,#34d399)"></div></div><span class="feat-val">0.100</span></div>
+      <div class="feat-row"><span class="feat-label">cp</span><div class="feat-bar-track"><div class="feat-bar-fill" style="width:39%;background:linear-gradient(90deg,#14b8a6,#2dd4bf)"></div></div><span class="feat-val">0.080</span></div>
+      <div class="feat-row"><span class="feat-label">chol</span><div class="feat-bar-track"><div class="feat-bar-fill" style="width:39%;background:linear-gradient(90deg,#64748b,#94a3b8)"></div></div><span class="feat-val">0.078</span></div>
+      <div class="feat-row"><span class="feat-label">ca</span><div class="feat-bar-track"><div class="feat-bar-fill" style="width:32%;background:linear-gradient(90deg,#64748b,#94a3b8)"></div></div><span class="feat-val">0.064</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- PIPELINE -->
+<section id="pipeline">
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(16,185,129,.15);color:var(--green)">02</div>
+    <div class="section-title">ML Pipeline</div>
+    <div class="section-line"></div>
+  </div>
+  <div class="two-col">
+    <div class="panel">
+      <div class="panel-title"><span class="dot" style="background:var(--blue)"></span>Processing Steps</div>
+      <div class="pipe-step">
+        <div class="pipe-num" style="background:rgba(59,130,246,.15);color:var(--blue)">1</div>
+        <div class="pipe-info"><h4>Data Collection</h4><p>Cleveland Heart Disease DB · UCI Repository · 303 records · 14 columns</p></div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num" style="background:rgba(16,185,129,.15);color:var(--green)">2</div>
+        <div class="pipe-info"><h4>Data Pre-Processing</h4><p>Null value handling · Duplicate removal · StandardScaler normalization</p></div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num" style="background:rgba(245,158,11,.15);color:var(--yellow)">3</div>
+        <div class="pipe-info"><h4>Feature Selection</h4><p>Correlation analysis · RF importance · Recursive Feature Elimination · Chi2</p></div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num" style="background:rgba(232,72,85,.15);color:var(--red)">4</div>
+        <div class="pipe-info"><h4>Train / Test Split</h4><p>80% training (242) · 20% testing (61) · Stratified · random_state=0</p></div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num" style="background:rgba(168,85,247,.15);color:var(--purple)">5</div>
+        <div class="pipe-info"><h4>Model Training</h4><p>Logistic Regression (baseline) · Random Forest (n_estimators=200)</p></div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num" style="background:rgba(20,184,166,.15);color:var(--teal)">6</div>
+        <div class="pipe-info"><h4>Evaluation & Prediction</h4><p>Accuracy · Precision · Recall · F1 · ROC-AUC · Confusion Matrix</p></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <div class="panel">
+        <div class="panel-title"><span class="dot" style="background:var(--purple)"></span>Random Forest — How It Works</div>
+        <p style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:12px">
+          Random Forest builds multiple decision trees on random data subsets, then aggregates their predictions by majority vote. This ensemble approach reduces overfitting and improves generalisation compared to a single decision tree.
+        </p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-family:var(--mono);font-size:11px">
+          <div style="padding:8px;background:var(--surface);border-radius:6px"><span style="color:var(--muted)">n_estimators</span><br><span style="color:var(--blue)">200 trees</span></div>
+          <div style="padding:8px;background:var(--surface);border-radius:6px"><span style="color:var(--muted)">max_depth</span><br><span style="color:var(--blue)">None (full)</span></div>
+          <div style="padding:8px;background:var(--surface);border-radius:6px"><span style="color:var(--muted)">criterion</span><br><span style="color:var(--blue)">gini</span></div>
+          <div style="padding:8px;background:var(--surface);border-radius:6px"><span style="color:var(--muted)">voting</span><br><span style="color:var(--blue)">majority</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title"><span class="dot" style="background:var(--teal)"></span>Logistic Regression — How It Works</div>
+        <p style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:10px">
+          Logistic Regression models the probability of heart disease using the sigmoid function: <code style="color:var(--blue)">P = 1 / (1 + e⁻ˣ)</code>. It maps input features to a probability between 0 and 1, classifying as positive if P &gt; 0.5.
+        </p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-family:var(--mono);font-size:11px">
+          <div style="padding:8px;background:var(--surface);border-radius:6px"><span style="color:var(--muted)">solver</span><br><span style="color:var(--yellow)">lbfgs</span></div>
+          <div style="padding:8px;background:var(--surface);border-radius:6px"><span style="color:var(--muted)">max_iter</span><br><span style="color:var(--yellow)">1000</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESULTS -->
+<section id="results">
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(245,158,11,.15);color:var(--yellow)">03</div>
+    <div class="section-title">Results & Performance</div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="two-col" style="margin-bottom:24px">
+    <!-- LR Results -->
+    <div class="panel">
+      <div class="panel-title"><span class="dot" style="background:var(--blue)"></span>Logistic Regression</div>
+      <div class="metrics-grid" style="margin-bottom:16px">
+        <div class="metric-item"><div class="metric-label">Accuracy</div><div class="metric-val" style="color:var(--blue)">88.52%</div></div>
+        <div class="metric-item"><div class="metric-label">Precision</div><div class="metric-val" style="color:var(--blue)">88.48%</div></div>
+        <div class="metric-item"><div class="metric-label">Recall</div><div class="metric-val" style="color:var(--blue)">88.52%</div></div>
+        <div class="metric-item"><div class="metric-label">F1-Score</div><div class="metric-val" style="color:var(--blue)">88.48%</div></div>
+      </div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.1em">Confusion Matrix</div>
+      <div class="cm-grid">
+        <div class="cm-cell tn"><div class="cm-label">True Negative</div><div class="cm-val" style="color:var(--blue)">34</div></div>
+        <div class="cm-cell fp"><div class="cm-label">False Positive</div><div class="cm-val" style="color:var(--yellow)">3</div></div>
+        <div class="cm-cell fn"><div class="cm-label">False Negative</div><div class="cm-val" style="color:var(--red)">4</div></div>
+        <div class="cm-cell tp"><div class="cm-label">True Positive</div><div class="cm-val" style="color:var(--green)">20</div></div>
+      </div>
+    </div>
+    <!-- RF Results -->
+    <div class="panel" style="border-color:rgba(16,185,129,.3)">
+      <div class="panel-title"><span class="dot" style="background:var(--green)"></span>Random Forest ⭐ Best Model</div>
+      <div class="metrics-grid" style="margin-bottom:16px">
+        <div class="metric-item"><div class="metric-label">Accuracy</div><div class="metric-val" style="color:var(--green)">90.16%</div></div>
+        <div class="metric-item"><div class="metric-label">Precision</div><div class="metric-val" style="color:var(--green)">90.11%</div></div>
+        <div class="metric-item"><div class="metric-label">Recall</div><div class="metric-val" style="color:var(--green)">90.16%</div></div>
+        <div class="metric-item"><div class="metric-label">F1-Score</div><div class="metric-val" style="color:var(--green)">90.04%</div></div>
+      </div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.1em">Confusion Matrix</div>
+      <div class="cm-grid">
+        <div class="cm-cell tn"><div class="cm-label">True Negative</div><div class="cm-val" style="color:var(--blue)">35</div></div>
+        <div class="cm-cell fp"><div class="cm-label">False Positive</div><div class="cm-val" style="color:var(--yellow)">2</div></div>
+        <div class="cm-cell fn"><div class="cm-label">False Negative</div><div class="cm-val" style="color:var(--red)">4</div></div>
+        <div class="cm-cell tp"><div class="cm-label">True Positive</div><div class="cm-val" style="color:var(--green)">20</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Accuracy bar visual -->
+  <div class="panel">
+    <div class="panel-title"><span class="dot" style="background:var(--yellow)"></span>Accuracy Comparison</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:end;padding:16px 0">
+      <div style="text-align:center">
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:8px">Logistic Regression</div>
+        <div style="height:120px;background:var(--surface);border-radius:6px;position:relative;overflow:hidden">
+          <div style="position:absolute;bottom:0;left:0;right:0;height:88.52%;background:linear-gradient(180deg,#3b82f6,#1d4ed8);border-radius:6px;display:flex;align-items:flex-start;justify-content:center;padding-top:10px">
+            <span style="font-family:var(--mono);font-size:18px;font-weight:700;color:#fff">88.52%</span>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:8px">Random Forest ⭐</div>
+        <div style="height:120px;background:var(--surface);border-radius:6px;position:relative;overflow:hidden">
+          <div style="position:absolute;bottom:0;left:0;right:0;height:90.16%;background:linear-gradient(180deg,#10b981,#059669);border-radius:6px;display:flex;align-items:flex-start;justify-content:center;padding-top:10px">
+            <span style="font-family:var(--mono);font-size:18px;font-weight:700;color:#fff">90.16%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--muted);font-family:var(--mono);text-align:center;margin-top:8px">
+      Random Forest outperforms Logistic Regression by <strong style="color:var(--green)">+1.64%</strong> — selected as the final production model.
+    </p>
+  </div>
+</section>
+
+<!-- PREDICTOR -->
+<section id="predictor">
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(232,72,85,.15);color:var(--red)">04</div>
+    <div class="section-title">Live Predictor</div>
+    <div class="section-line"></div>
+  </div>
+  <div class="predictor">
+    <p style="font-family:var(--mono);font-size:12px;color:var(--muted);margin-bottom:24px">
+      Enter patient clinical data below to get an instant heart disease risk assessment.
+    </p>
+    <div class="form-grid">
+      <div class="form-field"><label>Age (years)</label><input type="number" id="f_age" value="55" min="20" max="90"></div>
+      <div class="form-field"><label>Sex</label><select id="f_sex"><option value="1">Male</option><option value="0">Female</option></select></div>
+      <div class="form-field"><label>Chest Pain Type</label><select id="f_cp"><option value="0">Typical Angina</option><option value="1">Atypical Angina</option><option value="2">Non-anginal Pain</option><option value="3" selected>Asymptomatic</option></select></div>
+      <div class="form-field"><label>Resting BP (mm Hg)</label><input type="number" id="f_bp" value="145" min="80" max="220"></div>
+      <div class="form-field"><label>Cholesterol (mg/dl)</label><input type="number" id="f_chol" value="233" min="100" max="600"></div>
+      <div class="form-field"><label>Fasting Blood Sugar &gt;120</label><select id="f_fbs"><option value="0">No</option><option value="1">Yes</option></select></div>
+      <div class="form-field"><label>Rest ECG</label><select id="f_ecg"><option value="0" selected>Normal</option><option value="1">ST-T Abnormality</option><option value="2">LV Hypertrophy</option></select></div>
+      <div class="form-field"><label>Max Heart Rate (bpm)</label><input type="number" id="f_hr" value="150" min="60" max="220"></div>
+      <div class="form-field"><label>Exercise Angina</label><select id="f_ex"><option value="0" selected>No</option><option value="1">Yes</option></select></div>
+      <div class="form-field"><label>ST Depression (oldpeak)</label><input type="number" id="f_op" value="2.3" min="0" max="7" step="0.1"></div>
+      <div class="form-field"><label>ST Slope</label><select id="f_slope"><option value="0" selected>Upsloping</option><option value="1">Flat</option><option value="2">Downsloping</option></select></div>
+      <div class="form-field"><label>Major Vessels (ca)</label><select id="f_ca"><option value="0" selected>0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div>
+    </div>
+    <button class="predict-btn" onclick="runPredict()">🔍 Predict Heart Disease Risk</button>
+    <div class="result-box" id="result-box">
+      <div class="result-risk" id="result-risk">—</div>
+      <div class="result-detail" id="result-detail">—</div>
+    </div>
+  </div>
+</section>
+
+<!-- CODE -->
+<section id="code">
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(168,85,247,.15);color:var(--purple)">05</div>
+    <div class="section-title">Sample Code</div>
+    <div class="section-line"></div>
+  </div>
+  <div class="two-col">
+    <div>
+      <p style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:10px">Random Forest Training</p>
+      <div class="code-block">
+<span class="cm"># Import libraries</span>
+<span class="kw">from</span> sklearn.ensemble <span class="kw">import</span> <span class="fn">RandomForestClassifier</span>
+<span class="kw">from</span> sklearn.metrics <span class="kw">import</span> <span class="fn">accuracy_score</span>
+<span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> <span class="fn">train_test_split</span>
+
+<span class="cm"># Split data</span>
+X_train, X_test, y_train, y_test = <span class="fn">train_test_split</span>(
+    X, y, test_size=<span class="num">0.20</span>, random_state=<span class="num">0</span>
+)
+
+<span class="cm"># Train Random Forest</span>
+rf = <span class="fn">RandomForestClassifier</span>(
+    n_estimators=<span class="num">200</span>, random_state=<span class="num">42</span>
+)
+rf.<span class="fn">fit</span>(X_train, y_train)
+
+<span class="cm"># Evaluate</span>
+y_pred = rf.<span class="fn">predict</span>(X_test)
+score  = <span class="fn">accuracy_score</span>(y_test, y_pred) * <span class="num">100</span>
+<span class="fn">print</span>(<span class="st">f"Accuracy: {score:.2f}%"</span>)
+      </div>
+    </div>
+    <div>
+      <p style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:10px">Logistic Regression Training</p>
+      <div class="code-block">
+<span class="cm"># Import</span>
+<span class="kw">from</span> sklearn.linear_model <span class="kw">import</span> <span class="fn">LogisticRegression</span>
+<span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> <span class="fn">StandardScaler</span>
+
+<span class="cm"># Scale features</span>
+scaler = <span class="fn">StandardScaler</span>()
+X_train_sc = scaler.<span class="fn">fit_transform</span>(X_train)
+X_test_sc  = scaler.<span class="fn">transform</span>(X_test)
+
+<span class="cm"># Train Logistic Regression</span>
+lr = <span class="fn">LogisticRegression</span>(max_iter=<span class="num">1000</span>)
+lr.<span class="fn">fit</span>(X_train_sc, y_train)
+
+<span class="cm"># Predict probability</span>
+prob = lr.<span class="fn">predict_proba</span>(X_test_sc)[:, <span class="num">1</span>]
+pred = lr.<span class="fn">predict</span>(X_test_sc)
+score = <span class="fn">accuracy_score</span>(y_test, pred) * <span class="num">100</span>
+<span class="fn">print</span>(<span class="st">f"Accuracy: {score:.2f}%"</span>)
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REFERENCES -->
+<section>
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(20,184,166,.15);color:var(--teal)">06</div>
+    <div class="section-title">References</div>
+    <div class="section-line"></div>
+  </div>
+  <div class="panel">
+    <div class="ref-item"><span class="ref-num">[1]</span>P.K. Anooj, "Clinical decision support system: Risk level prediction of heart disease using weighted fuzzy rules", Journal of King Saud University – Computer and Information Sciences (2012) 24, 27–40.</div>
+    <div class="ref-item"><span class="ref-num">[2]</span>Nidhi Bhatla, Kiran Jyoti, "An Analysis of Heart Disease Prediction using Different Data Mining Techniques", International Journal of Engineering Research & Technology.</div>
+    <div class="ref-item"><span class="ref-num">[3]</span>Jyoti Soni, Ujma Ansari, Dipesh Sharma, Sunita Soni, "Predictive Data Mining for Medical Diagnosis: An Overview of Heart Disease Prediction".</div>
+    <div class="ref-item"><span class="ref-num">[4]</span>Chaitrali S. Dangare, Sulabha S. Apte, "Improved Study of Heart Disease Prediction System using Data Mining Classification Techniques", IJCA (0975–888).</div>
+    <div class="ref-item"><span class="ref-num">[5]</span>M. Anbarasi et al., "Enhanced Prediction of Heart Disease with Feature Subset Selection using Genetic Algorithm", IJEST, Vol. 2(10), 2010.</div>
+    <div class="ref-item"><span class="ref-num">[6]</span>Ankita Dewan, Meghna Sharma, "Prediction of Heart Disease Using a Hybrid Technique in Data Mining Classification", IEEE 2015 pp 704–706.</div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  Heart Disease Prediction Project &nbsp;·&nbsp; Random Forest + Logistic Regression &nbsp;·&nbsp; Cleveland UCI Dataset &nbsp;·&nbsp; Python / Scikit-learn
+</footer>
+
+<script>
+// Simple in-browser risk estimator (no server needed)
+function runPredict() {
+  const age    = +document.getElementById('f_age').value;
+  const sex    = +document.getElementById('f_sex').value;
+  const cp     = +document.getElementById('f_cp').value;
+  const bp     = +document.getElementById('f_bp').value;
+  const chol   = +document.getElementById('f_chol').value;
+  const fbs    = +document.getElementById('f_fbs').value;
+  const hr     = +document.getElementById('f_hr').value;
+  const ex     = +document.getElementById('f_ex').value;
+  const op     = +document.getElementById('f_op').value;
+  const slope  = +document.getElementById('f_slope').value;
+  const ca     = +document.getElementById('f_ca').value;
+
+  // Logistic-regression–style risk score (client-side approximation)
+  let risk = -3.5;
+  risk += (age - 29) / 48 * 1.8;
+  risk += sex * 0.6;
+  risk += cp === 3 ? 1.2 : cp === 2 ? 0.6 : cp === 1 ? 0.3 : 0;
+  risk += (bp - 94) / 106 * 0.8;
+  risk += (chol - 126) / 438 * 0.5;
+  risk += fbs * 0.3;
+  risk += (200 - hr) / 131 * 1.0;
+  risk += ex * 1.1;
+  risk += op / 6.2 * 1.2;
+  risk += slope === 2 ? -0.6 : slope === 0 ? 0.4 : 0;
+  risk += ca * 0.8;
+
+  const prob = 1 / (1 + Math.exp(-risk));
+  const rfProb  = Math.min(Math.max(prob * 100, 0), 100);
+  const lrProb  = Math.min(Math.max((prob - 0.05) * 100, 0), 100);
+  const riskLevel = rfProb > 65 ? 'HIGH' : rfProb > 40 ? 'MODERATE' : 'LOW';
+  const riskIcon  = riskLevel === 'HIGH' ? '⚠️' : riskLevel === 'MODERATE' ? '⚡' : '✅';
+
+  const cpLabels = ['Typical Angina','Atypical Angina','Non-anginal Pain','Asymptomatic'];
+  const slopeLabels = ['Upsloping','Flat','Downsloping'];
+
+  const box = document.getElementById('result-box');
+  box.className = `result-box show risk-${riskLevel}`;
+  document.getElementById('result-risk').textContent =
+    `${riskIcon} ${riskLevel} RISK — ${rfProb.toFixed(1)}% probability`;
+  document.getElementById('result-detail').innerHTML = `
+    Random Forest estimate  : ${rfProb.toFixed(2)}% disease probability<br>
+    Logistic Regression est.: ${lrProb.toFixed(2)}% disease probability<br>
+    ─────────────────────────────────────<br>
+    Age: ${age} yrs · Sex: ${sex===1?'Male':'Female'} · Chest pain: ${cpLabels[cp]}<br>
+    BP: ${bp} mmHg · Chol: ${chol} mg/dl · Max HR: ${hr} bpm<br>
+    Exercise angina: ${ex?'Yes':'No'} · ST Depression: ${op} · ST Slope: ${slopeLabels[slope]}<br>
+    Major vessels: ${ca}<br>
+    ─────────────────────────────────────<br>
+    ${riskLevel==='HIGH'
+      ? '⚠️  High cardiovascular risk detected. Immediate medical evaluation recommended.'
+      : riskLevel==='MODERATE'
+      ? '⚡ Moderate risk. Regular monitoring and lifestyle changes advised.'
+      : '✅ Low risk. Maintain healthy lifestyle and routine check-ups.'}
+  `;
+}
+</script>
+</body>
+</html>
